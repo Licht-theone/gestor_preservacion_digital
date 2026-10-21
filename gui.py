@@ -18,6 +18,7 @@ class GestorPreservacion(ctk.CTk):
         super().__init__()
         self.title("Gestor Preservacion Digital")
         self.geometry("950x750")
+        self.iconbitmap("./favicon.ico")
         self.tabs = ctk.CTkTabview(self)
         self.tabs.pack(fill="both", expand=True, padx=10, pady=10)
         self.tab_rar = self.tabs.add("Generar RARs")
