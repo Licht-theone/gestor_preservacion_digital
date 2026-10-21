@@ -45,3 +45,6 @@ Si buscas un disco concreto muestra un resumen de los ficheros que contiene adem
 
 Al buscar RARs y ficheros normales puedes introducir un id de disco y mostrará todos los archivos que conste que están en ese disco.
 Por último si buscas por nombre de archivo (tanto rar como otro) es necesaria la extensión y se muestra toda la info disponible.
+
+# Disclaimer
+Es un proyecto personal, no garantizo funcionalidad en otros equipos sin modificar el código, ni garantizo mantenimiento o actualizaciones fuera de lo que necesite añadir yo para mi uso personal.
