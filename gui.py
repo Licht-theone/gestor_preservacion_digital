@@ -16,14 +16,14 @@ CAPACIDADES_BD = {
 class GestorPreservacion(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Gestor Preservacion Digital")
+        self.title("Gestor Preservación Digital")
         self.geometry("950x750")
         self.iconbitmap("./favicon.ico")
         self.tabs = ctk.CTkTabview(self)
         self.tabs.pack(fill="both", expand=True, padx=10, pady=10)
         self.tab_rar = self.tabs.add("Generar RARs")
         self.tab_grabar = self.tabs.add("Preparar buffer y grabar disco")
-        self.tab_bbdd = self.tabs.add("Gestion de base de datos")
+        self.tab_bbdd = self.tabs.add("Gestión de base de datos")
 
         self.construir_pestana_grabar()
         self.construir_pestana_bbdd()
@@ -31,7 +31,7 @@ class GestorPreservacion(ctk.CTk):
 
     def construir_pestana_rar(self):
         self.ruta_origen = ctk.StringVar(value="")
-        self.ruta_destino = ctk.StringVar(value="")
+        self.ruta_destino = ctk.StringVar(value="no olvides poner archivo.rar al final de la ruta")
 
         ctk.CTkLabel(self.tab_rar, text="Empaquetado y compresión",
                      font=("Arial", 20, "bold")).pack(pady=20)
@@ -393,7 +393,9 @@ class GestorPreservacion(ctk.CTk):
         if ruta: self.ruta_origen.set(ruta)
 
     def seleccionar_destino(self):
-        ruta = filedialog.askdirectory(title="Selecciona la carpeta de salida")
+        ruta = filedialog.asksaveasfilename(title="Guardar RAR como",
+                                            defaultextension=".rar",
+                                            filetypes=[("RAR files", ".rar")])
         if ruta: self.ruta_destino.set(ruta)
 
     def iniciar_compresion(self):
