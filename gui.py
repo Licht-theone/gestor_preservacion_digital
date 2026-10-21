@@ -1,4 +1,5 @@
 import os
+import sys
 import tkinter as tk
 import customtkinter as ctk
 import threading
@@ -13,12 +14,18 @@ CAPACIDADES_BD = {
     "BD-R XL (128GB)": 128_001_769_472
 }
 
+def resolver_ruta(ruta_relativa):
+    """Devuelve la ruta absoluta al recurso, ya sea en desarrollo o en el .exe compilado"""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, ruta_relativa)
+    return os.path.join(os.path.abspath("."), ruta_relativa)
+
 class GestorPreservacion(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Gestor Preservación Digital")
         self.geometry("950x750")
-        self.iconbitmap("./favicon.ico")
+        self.iconbitmap(resolver_ruta("favicon.ico"))
         self.tabs = ctk.CTkTabview(self)
         self.tabs.pack(fill="both", expand=True, padx=10, pady=10)
         self.tab_rar = self.tabs.add("Generar RARs")
