@@ -15,13 +15,22 @@ CAPACIDADES_BD = {
 }
 
 def resolver_ruta(ruta_relativa):
-    """Devuelve la ruta absoluta al recurso, ya sea en desarrollo o en el .exe compilado"""
+    """Devuelve la ruta absoluta al recurso, ya sea en desarrollo o en el .exe compilado
+
+    Args:
+        ruta_relativa: ruta relativa o nombre del recurso
+
+    Returns:
+        ruta_absoluta: ruta absoluta al recurso
+    """
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, ruta_relativa)
     return os.path.join(os.path.abspath("."), ruta_relativa)
 
 class GestorPreservacion(ctk.CTk):
+    """Clase base para la interfaz grafica basada en pestañas del programa principal"""
     def __init__(self):
+        """Constructor de la GUI, inicializa lo basico y llama a la generacion de pestañas"""
         super().__init__()
         self.title("Gestor Preservación Digital")
         self.geometry("950x750")
@@ -37,66 +46,79 @@ class GestorPreservacion(ctk.CTk):
         self.construir_pestana_rar()
 
     def construir_pestana_rar(self):
+        """Pestaña para generar archivos rar de una carpeta en segundo plano"""
+
+        #Variables para las rutas
         self.ruta_origen = ctk.StringVar(value="")
         self.ruta_destino = ctk.StringVar(value="no olvides poner archivo.rar al final de la ruta")
 
+        #Label principal de la pestaña y frame para colocar los componentes
         ctk.CTkLabel(self.tab_rar, text="Empaquetado y compresión",
                      font=("Arial", 20, "bold")).pack(pady=20)
         frame_inputs = ctk.CTkFrame(self.tab_rar, fg_color="transparent")
         frame_inputs.pack(pady=10)
 
-        #Origen
+        #Label y entry box para la ruta de la carpeta a comprimir
         ctk.CTkLabel(frame_inputs, text="Carpeta a comprimir").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         ctk.CTkEntry(frame_inputs, textvariable=self.ruta_origen, width=450).grid(row=0, column=1, padx=10, pady=10)
         ctk.CTkButton(frame_inputs, text="Explorar", command=self.seleccionar_origen).grid(row=0, column=2, padx=10, pady=10)
 
-        #Destino
+        #Labe y entry box para la carpeta de salida del rar
         ctk.CTkLabel(frame_inputs, text="Carpeta de destino").grid(row=1, column=0, padx=10, pady=10, sticky="w")
         ctk.CTkEntry(frame_inputs, textvariable=self.ruta_destino, width=450).grid(row=1, column=1, padx=10, pady=10)
         ctk.CTkButton(frame_inputs, text="Explorar", command=self.seleccionar_destino).grid(row=1, column=2, padx=10,
                                                                                                pady=10)
+        #Boton que llama a la funcion que comprime en segundo plano
         self.btn_comprimir = ctk.CTkButton(self.tab_rar, text="Comprimir RAR", height=40,
                                            font=("Arial", 14, "bold"), command=self.iniciar_compresion)
         self.btn_comprimir.pack(pady=30)
 
+        #Texto indicador del proceso de compresion
         self.label_estado_rar = ctk.CTkLabel(self.tab_rar, text="Esperando...", text_color="gray")
         self.label_estado_rar.pack()
 
     def construir_pestana_grabar(self):
+        """Pestaña para gestionar los archivos que van a ir al buffer de grabacion y lanzar el programa"""
+
+        #Variables para carpetas de origen, destino y capacidad de blu ray seleccionada
         self.plan_origen = ctk.StringVar(value="")
         self.plan_destino = ctk.StringVar(value="")
         self.capacidad_seleccionada = ctk.StringVar(value="BD-R SL (25GB)")
 
+        #Frame para colocar todos los componentes de la interfaz
         frame_rutas = ctk.CTkFrame(self.tab_grabar)
         frame_rutas.pack(padx=10 ,pady=10, fill="x")
 
-        #Ruta de origen
+        #Label, entry box y boton para explorar carpetas para la ruta de origen
         ctk.CTkLabel(frame_rutas, text="Carpeta origen:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
         ctk.CTkEntry(frame_rutas, textvariable=self.plan_origen, width=350).grid(row=0, column=1, padx=5, pady=5)
         ctk.CTkButton(frame_rutas, text="Explorar", command=self.seleccionar_prebuffer).grid(row=0, column=2,
                                                                                           padx=5, pady=5)
-        #Ruta de buffer
+        #Label, entry box y boton para explorar carpetas para la ruta de buffer
         ctk.CTkLabel(frame_rutas, text="Carpeta Buffer (Grabación)").grid(row=1, column=0, padx=5, pady=5, sticky="w")
         ctk.CTkEntry(frame_rutas, textvariable=self.plan_destino, width=350).grid(row=1, column=1, padx=5, pady=5)
         ctk.CTkButton(frame_rutas, text="Explorar",command=self.seleccionar_buffer).grid(row=1, column=2,
                                                                                                      padx=5, pady=5)
+        #Menu desplegable para seleccionar la capacidad del disco
         ctk.CTkOptionMenu(frame_rutas, values=list(CAPACIDADES_BD.keys()), variable=self.capacidad_seleccionada,
                           command=lambda x: self.actualizar_listas()).grid(row=2, column=1, padx=5,
                                                                            pady=10, sticky="w")
+        #Boton que refresca la interfaz una vez seleccionadas las carpetas
         ctk.CTkButton(frame_rutas, text="Cargar Carpetas", fg_color="green",
                       command=self.actualizar_listas).grid(row=2, column=2, padx=5, pady=10)
 
+        #Label y barra para ver el % de llenado del disco en base a los archivos en buffer
         self.label_tamano = ctk.CTkLabel(self.tab_grabar, text="0.00 GB / 23.30 GB", font=("Arial", 20, "bold"))
         self.label_tamano.pack(pady=5)
         self.barra_progreso = ctk.CTkProgressBar(self.tab_grabar, width=700)
         self.barra_progreso.pack(pady=5)
         self.barra_progreso.set(0)
 
-        #zona de listas de archivos
+        #frame de la zona de listas de archivos
         frame_listas = ctk.CTkFrame(self.tab_grabar, fg_color="transparent")
         frame_listas.pack(pady=10, padx=10, fill="both", expand=True)
 
-        #lista de origen
+        #lista de origen colocada en su propio frame
         frame_izq = ctk.CTkFrame(frame_listas, fg_color="transparent")
         frame_izq.pack(side="left", fill="both", expand=True, padx=5)
         ctk.CTkLabel(frame_izq, text="Archivos de origen").pack()
@@ -104,12 +126,13 @@ class GestorPreservacion(ctk.CTk):
                                        selectbackground="#1f538d", highlightthickness=0)
         self.lista_origen.pack(fill="both", expand=True, padx=5, pady=5)
 
+        #Frame central para los botones de mover a buffer y devolver
         frame_centro = ctk.CTkFrame(frame_listas, fg_color="transparent")
         frame_centro.pack(side="left", padx=10)
         ctk.CTkButton(frame_centro, text="Mover al Buffer >>", command=self.mover_a_buffer).pack(pady=10)
         ctk.CTkButton(frame_centro, text="<< Devolver", command=self.mover_a_origen).pack(pady=10)
 
-        #lista del buffer de grabacion
+        #lista del buffer de grabacion colocada en el otro frame
         frame_der = ctk.CTkFrame(frame_listas)
         frame_der.pack(side="left", padx=5, fill="both", expand=True)
         ctk.CTkLabel(frame_der, text="Archivos del buffer").pack()
@@ -117,18 +140,23 @@ class GestorPreservacion(ctk.CTk):
                                        selectbackground="#1f538d", highlightthickness=0)
         self.lista_buffer.pack(fill="both", expand=True, padx=5, pady=5)
 
-        #Boton imgburn
+        #boton que lanza el ejecutable de imgburn de existir
         self.btn_imgburn = ctk.CTkButton(self.tab_grabar, text="Abrir ImgBurn💿", font=("Arial", 16, "bold"),
                                          fg_color="#8B0000", hover_color="#A52A2A", command=self.lanzar_imgburn)
         self.btn_imgburn.pack(pady=10)
 
     def actualizar_listas(self):
+        """Metodo que actualiza las listas de archivos en la pestaña de planeado de la grabacion"""
+
+        #Rutas a origen y destion base
         origen = self.plan_origen.get()
         destino = self.plan_destino.get()
 
+        #Borrar las listas enteras
         self.lista_origen.delete(0, tk.END)
         self.lista_buffer.delete(0, tk.END)
 
+        #Leer los archivos en la carpeta de origen y destino e insertarlos
         lista_origen = backend.leer_archivos(origen)
         if lista_origen:
             for item in lista_origen:
@@ -138,6 +166,7 @@ class GestorPreservacion(ctk.CTk):
             for item in lista_destino:
                 self.lista_buffer.insert(tk.END, item)
 
+        #Calcular el tamaño usado por los archivos en la carpeta buffer (destino) y actualizar barra y label
         tamano_bytes = backend.calcular_capacidad_usada(destino)
         capacidad_max = CAPACIDADES_BD[self.capacidad_seleccionada.get()]
 
@@ -153,34 +182,63 @@ class GestorPreservacion(ctk.CTk):
             self.label_tamano.configure(text_color="white")
 
     def ejecutar_movimiento(self, lista_origen, ruta_origen_base, ruta_destino_base):
+        """Metodo que ejecuta el movimiento entre las carpetas de origen y destino.
+        Usado tanto para mover de buffer a no buffer y viceversa.
+
+        Args:
+            lista_origen (list): Lista de elementos de la carpeta desde la que se va a mover
+            ruta_origen_base (string): Ruta base a la carpeta de origen
+            ruta_destino_base (string): Ruta base a la carpeta de destino
+        """
+
+        #ver que elemento esta seleccionado, sino retornar
         seleccion = lista_origen.curselection()
         if not seleccion: return
 
+        #leer el nombre del archivo y generar la ruta de origen y destino
         nombre_item = lista_origen.get(seleccion[0])
         ruta_origen = os.path.join(ruta_origen_base, nombre_item)
         ruta_destino = os.path.join(ruta_destino_base, nombre_item)
 
+        #llamar a la función que mueve el archivo o directorio en un hilo separado
+        hilo = threading.Thread(target=self.mover_hilo, args=(self, ruta_origen, ruta_destino))
+        hilo.start()
+
+    def mover_hilo(self, ruta_origen, ruta_destino):
+        """Metodo auxiliar para no bloquear la GUI moviendo archivos muy grandes.
+
+        Args:
+            self (GestorPreservacion): la propia gui
+            ruta_origen (string): Ruta origen
+            ruta_destino (string): Ruta destino
+        """
         exito = backend.mover_archivos(ruta_origen, ruta_destino)
         if exito:
             self.actualizar_listas()
 
-
     def mover_a_buffer(self):
+        """Metodo auxiliar para el boton mover a buffer que llama al metodo real"""
         self.ejecutar_movimiento(self.lista_origen, self.plan_origen.get(), self.plan_destino.get())
 
     def mover_a_origen(self):
+        """Metodo auxiliar para el boton devolver que llama al metodo real"""
         self.ejecutar_movimiento(self.lista_buffer, self.plan_destino.get(), self.plan_origen.get())
 
     def lanzar_imgburn(self):
+        """Metodo que lanza imgburn desde la GUI llamando al backend"""
         backend.lanzar_img_burn()
 
     def construir_pestana_bbdd(self):
+        """Pestaña de gestion de la base de datos"""
+
+        #Frames para colocar la parte de busqueda y la parte de insertado
         frame_izq = ctk.CTkFrame(self.tab_bbdd)
         frame_izq.pack(fill="both", expand=True, padx=10, pady=10, side="left")
 
         frame_der =ctk.CTkScrollableFrame(self.tab_bbdd)
         frame_der.pack(fill="both", expand=True, padx=10, pady=10, side="right")
-        #Busqueda
+
+        #Busqueda de archivos/rars/discos
         ctk.CTkLabel(frame_izq, text="Buscador", font=("Arial", 18, "bold")).pack(pady=15)
         self.tipo_busqueda = ctk.StringVar(value="Archivos")
         ctk.CTkSegmentedButton(frame_izq, values=["Archivos", "RARs", "Discos"], variable=self.tipo_busqueda).pack(pady=5)
@@ -189,10 +247,11 @@ class GestorPreservacion(ctk.CTk):
 
         ctk.CTkButton(frame_izq, text="Buscar", command=self.buscar_elemento_ui).pack(pady=5)
 
+        #Caja de texto en la que la base de datos escupe lo que se devuelve
         self.caja_resultados = ctk.CTkTextbox(frame_izq, width=400, height=400)
         self.caja_resultados.pack(pady=10, padx=10, fill="both", expand=True)
 
-        #Guardar disco bbdd
+        #Seccion para guardar un disco en la bbdd
         ctk.CTkLabel(frame_der, text="Registrar nuevo disco💿", font=("Arial", 16, "bold")).pack(pady=(15, 5))
 
         self.bd_id = ctk.StringVar(value="BD-000")
@@ -204,7 +263,7 @@ class GestorPreservacion(ctk.CTk):
         ctk.CTkOptionMenu(frame_der, values=list(CAPACIDADES_BD.keys()), variable=self.bd_capacidad).pack(pady=2)
         ctk.CTkButton(frame_der, text="Guardar disco", fg_color="green", command=self.guardar_disco).pack(pady=10)
 
-        #Guardar directorios y rars
+        #Seccion que escanea carpetas en busca de rars o archivos normales y los archiva en la bbdd
         ctk.CTkLabel(frame_der, text="Escanear carpeta📁", font=("Arial", 16, "bold")).pack(pady=25)
         self.ruta_escaneo = ctk.StringVar()
         self.id_bd_destino = ctk.StringVar()
@@ -232,12 +291,19 @@ class GestorPreservacion(ctk.CTk):
 
 
     def buscar_elemento_ui(self):
+        """Metodo que se comunica con la base de datos a la hora de buscar"""
+
+        #termino que buscar (id disco, id rar, id archivo)
         termino = self.entry_busqueda.get()
+        #tipo que buscar (disco, rar o archivo)
         tipo = self.tipo_busqueda.get()
         self.caja_resultados.delete("1.0", tk.END)
+        todos_discos = False #variable auxiliar para evitar que salga la string al sacar todos los discos
         if not termino:
+            #comportamiento por defecto en la pestaña de discos es listar todos los discos que hay
             if tipo == "Discos":
                 resultados = baseDatos.buscar_discos()
+                todos_discos = True
                 if resultados:
                     self.caja_resultados.insert(tk.END, "--- INVENTARIO DE TODOS LOS DISCOS ---\n")
                     for fila in resultados:
@@ -307,9 +373,11 @@ class GestorPreservacion(ctk.CTk):
                     texto += f"\n{'-' * 40}\n"
                     self.caja_resultados.insert(tk.END, texto)
             else:
-                self.caja_resultados.insert(tk.END, f"No se encontró ningún disco con el ID '{termino}'.")
+                if not todos_discos:
+                    self.caja_resultados.insert(tk.END, f"No se encontró ningún disco con el ID '{termino}'.")
 
     def guardar_disco(self):
+        """Metodo que llama al insertar disco de la base de datos"""
         id_disco = self.bd_id.get()
         if id_disco:
             try:
@@ -321,6 +389,7 @@ class GestorPreservacion(ctk.CTk):
             self.label_estado_bd.configure(text="Falta el ID del disco.", text_color="orange")
 
     def escanear_originales(self):
+        """Metodo que llama al escaneo de un directorio y subdirectorios con archivos sin comrpimir"""
         ruta = self.ruta_escaneo.get()
         id_disco = self.id_bd_destino.get()
         nombre_rar = self.nombre_rar_destino.get()
@@ -332,10 +401,11 @@ class GestorPreservacion(ctk.CTk):
 
         try:
             for archivo in archivos_enc:
+                #solo archivos no comprimidos en rar
                 if not archivo.lower().endswith(".rar"):
                     baseDatos.crear_archivo_disco(archivo, id_disco)
 
-                    if nombre_rar:
+                    if nombre_rar: #se adjunta en que rar se van a comprimir si aplica
                         baseDatos.adjuntar_nombre_rar_a_archivo(nombre_rar, archivo)
 
                     self.label_estado_bd.configure(text=f"{len(archivos_enc)} archivos indexados con éxito.",
@@ -346,6 +416,7 @@ class GestorPreservacion(ctk.CTk):
 
 
     def escanear_rars(self):
+        """Metodo para el escaneo de rars en un directorio y generacion de sus hashes"""
         ruta = self.ruta_escaneo.get()
         id_disco = self.id_bd_destino.get()
 
@@ -358,11 +429,19 @@ class GestorPreservacion(ctk.CTk):
         self.label_estado_bd.configure(text="Procesando RARs... (La interfaz podría pausarse por el cálculo de Hashes)",
                                        text_color="orange")
 
+        #hilo separado para el hash para no colgar la interfaz mientras se procesan
         hilo = threading.Thread(target=self.hilo_hash_rars, args=(ruta, id_disco))
         hilo.start()
 
 
     def hilo_hash_rars(self, ruta, id_disco):
+        """Metodo auxiliar para usar un hilo para generar los hashes e ir insertando a la bbdd
+
+        Args:
+            self (GestorPreservacion): la propia GUI
+            ruta (str): ruta a la carpeta con los rars
+            id_disco (int): ID del disco al que van los rars
+        """
         archivos_encontrados = backend.escanear_para_archivo(ruta)
         rars_procesados = 0
         try:
@@ -383,39 +462,52 @@ class GestorPreservacion(ctk.CTk):
             self.btn_archivos.configure(state="normal")
             self.btn_rars.configure(state="normal")
 
-
     def seleccionar_buffer(self):
+        """Metodo auxiliar que lanza el dialogo para explorar carpetas para el buffer en la pestaña grabar"""
         ruta = filedialog.askdirectory(title="Selecciona la carpeta de buffer")
         if ruta: self.plan_destino.set(ruta)
+
     def seleccionar_prebuffer(self):
+        """Metodo auxiliar que lanza el dialogo para explorar carpetas para el origen en la pestaña grabar"""
         ruta = filedialog.askdirectory(title="Selecciona la carpeta de prebuffer")
         if ruta: self.plan_origen.set(ruta)
 
     def seleccionar_carpeta_escaneo(self):
+        """Metodo auxiliar que lanza el dialogo de explorar carpetas para escanear de cara a la bbdd"""
         ruta = filedialog.askdirectory(title="Selecciona la carpeta a escanear")
         if ruta: self.ruta_escaneo.set(ruta)
 
     def seleccionar_origen(self):
+        """Metodo auxiliar que lanza el dialogo para explorar la carpeta a comprimir en rar"""
         ruta = filedialog.askdirectory(title="Selecciona la carpeta de origen")
         if ruta: self.ruta_origen.set(ruta)
 
     def seleccionar_destino(self):
+        """Metodo auxiliar que lanza el dialogo para elegir donde guardar el archivo .rar"""
         ruta = filedialog.asksaveasfilename(title="Guardar RAR como",
                                             defaultextension=".rar",
                                             filetypes=[("RAR files", ".rar")])
         if ruta: self.ruta_destino.set(ruta)
 
     def iniciar_compresion(self):
+        """Metodo que llama al backend para generar el rar"""
         self.btn_comprimir.configure(state="disabled")
         self.label_estado_rar.configure(text="Comprimiendo de fondo... Puedes ir a la otra pestaña.",
                                         text_color="orange")
         origen = self.ruta_origen.get()
         destino = self.ruta_destino.get()
 
+        #lanzar el hilo de compresion
         hilo = threading.Thread(target=self.hilo_comprimir, args=(origen, destino))
         hilo.start()
 
     def hilo_comprimir(self, origen, destino):
+        """Metodo auxiliar que comprime el rar en un hilo separado sin bloquear la interfaz
+
+        Args:
+            origen (str): carpeta a comprimir
+            destino (str): salida del .rar ruta completa acabada en "archivo.rar"
+        """
         try:
             backend.generar_rar(origen, destino)
             self.label_estado_rar.configure(text="Compresion finalizada.")
@@ -423,6 +515,7 @@ class GestorPreservacion(ctk.CTk):
             self.label_estado_rar.configure(text=f"Error: {e}", text_color="red")
         finally:
             self.btn_comprimir.configure(state="normal")
+
 
 if __name__ == '__main__':
     baseDatos.inicializar()
