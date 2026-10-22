@@ -9,6 +9,7 @@ __pycache__/
 *.iss
 # Distribution / packaging
 .Python
+Output/
 build/
 .idea/
 develop-eggs/

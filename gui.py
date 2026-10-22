@@ -78,7 +78,7 @@ class GestorPreservacion(ctk.CTk):
         #Ruta de buffer
         ctk.CTkLabel(frame_rutas, text="Carpeta Buffer (Grabación)").grid(row=1, column=0, padx=5, pady=5, sticky="w")
         ctk.CTkEntry(frame_rutas, textvariable=self.plan_destino, width=350).grid(row=1, column=1, padx=5, pady=5)
-        ctk.CTkButton(frame_rutas, text="Explorar",command=lambda: self.seleccionar_buffer).grid(row=1, column=2,
+        ctk.CTkButton(frame_rutas, text="Explorar",command=self.seleccionar_buffer).grid(row=1, column=2,
                                                                                                      padx=5, pady=5)
         ctk.CTkOptionMenu(frame_rutas, values=list(CAPACIDADES_BD.keys()), variable=self.capacidad_seleccionada,
                           command=lambda x: self.actualizar_listas()).grid(row=2, column=1, padx=5,
@@ -165,11 +165,11 @@ class GestorPreservacion(ctk.CTk):
             self.actualizar_listas()
 
 
-    def mover_a_origen(self):
-        self.ejecutar_movimiento(self.lista_origen, self.ruta_origen.get(), self.ruta_destino.get())
-
     def mover_a_buffer(self):
-        self.ejecutar_movimiento(self.lista_buffer, self.ruta_destino.get(), self.ruta_origen.get())
+        self.ejecutar_movimiento(self.lista_origen, self.plan_origen.get(), self.plan_destino.get())
+
+    def mover_a_origen(self):
+        self.ejecutar_movimiento(self.lista_buffer, self.plan_destino.get(), self.plan_origen.get())
 
     def lanzar_imgburn(self):
         backend.lanzar_img_burn()
@@ -389,7 +389,7 @@ class GestorPreservacion(ctk.CTk):
         if ruta: self.plan_destino.set(ruta)
     def seleccionar_prebuffer(self):
         ruta = filedialog.askdirectory(title="Selecciona la carpeta de prebuffer")
-        if ruta: self.plan_destino.set(ruta)
+        if ruta: self.plan_origen.set(ruta)
 
     def seleccionar_carpeta_escaneo(self):
         ruta = filedialog.askdirectory(title="Selecciona la carpeta a escanear")
